@@ -123,15 +123,15 @@ if __name__ == "__main__":
         album_dir = path.join(DOWNLOAD_DIR, album)
         url = "{}/{}/{}".format(KHINSIDER_BASE_URL, KHINSIDER_OST_SECTION, album)
 
-        directory_setup(album_dir)
-
         print("=" * 20)
         find_unique_songs(url)
+
 
         print("=" * 20)
         find_download_link()
 
         print("=" * 20)
+        directory_setup(album_dir)
         download_songs(album_dir)
 
     else:
