@@ -135,7 +135,7 @@ if __name__ == "__main__":
         download_songs(album_dir)
 
     else:
-        pint("Invalid parameters.")
+        print("Invalid parameters.")
 
     print("\nFinished ...")
 
