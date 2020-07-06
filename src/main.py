@@ -1,6 +1,7 @@
 from urllib.parse import unquote_plus
 from bs4 import BeautifulSoup
 from os import path, mkdir
+import threading
 import argparse
 import platform
 import requests
@@ -63,34 +64,54 @@ def find_unique_songs(url):
     r = requests.get(url)
     if 'Ooops!' not in r.text and r.status_code == 200:
         soup = BeautifulSoup(r.text, features="html5lib")
-        links = soup.find_all(has_href_and_mp3)
+        soup.find_all(has_href_and_mp3)
     elif 'Ooops!' in r.text:
         print("This album doesn't seem to exist")
         exit(1)
     else:
         print("Unknown error : {}".format(r.status_code))
 
-def find_download_link():
-    global UNIQUE_SONGS
+def find_download_links():
+    threads = list()
     print("Finding download links.")
-    for song in UNIQUE_SONGS.keys():
-        print("Finding link for : {}".format(song))
-        r = requests.get(UNIQUE_SONGS[song])
-        if r.status_code == 200:
-            soup = BeautifulSoup(r.text, features="html5lib")
-            download_links = soup.find_all(has_href_and_mp3)
+    for song in UNIQUE_SONGS.keys():    
+        x = threading.Thread(target=find_download_link, args=(song,))
+        threads.append(x)
+        x.start()
+    return threads
+
+def wait_for_threads(threads):
+    for thread in threads:
+        thread.join()
+
+    
+def find_download_link(song):
+    global UNIQUE_SONGS
+    print("Finding link for : {}".format(song))
+    r = requests.get(UNIQUE_SONGS[song])
+    if r.status_code == 200:
+        soup = BeautifulSoup(r.text, features="html5lib")
+        soup.find_all(has_href_and_mp3)
 
 def download_songs(album_dir):
+    threads = list()
     print("Downloading found unique songs ...")
     for song in UNIQUE_SONGS.keys():
-        download_r = requests.get(UNIQUE_SONGS[song], allow_redirects=True)
-        if download_r.status_code == 200:
+        x = threading.Thread(target=download_song, args=(song,))
+        threads.append(x)
+        x.start()
+    return threads
+
+def download_song(song):
+    download_r = requests.get(UNIQUE_SONGS[song], allow_redirects=True)
+    if download_r.status_code == 200:
             print("\nDownloading : {}".format(song))
             print("Using URL : {}".format(UNIQUE_SONGS[song]))
             open(path.join(album_dir, song), 'wb').write(download_r.content)
-        else:
-            print("There seems to have a problem with the download link, status_code was: {}"\
-                .format(download_r.status_code))
+    else:
+        print("There seems to have a problem with the download link, status_code was: {}"\
+            .format(download_r.status_code))
+
 
 def print_banner():
     print("=-" * 10)
@@ -128,14 +149,16 @@ if __name__ == "__main__":
 
 
         print("=" * 20)
-        find_download_link()
+        threads = find_download_links()
+        wait_for_threads(threads)
 
         print("=" * 20)
         directory_setup(album_dir)
-        download_songs(album_dir)
+        threads = download_songs(album_dir)
+        wait_for_threads(threads)
 
     else:
-        pint("Invalid parameters.")
+        print("Invalid parameters.")
 
     print("\nFinished ...")
 
