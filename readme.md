@@ -3,7 +3,7 @@ This script is a very simple and barebones khinsider scraper to download video g
 There are two different options you can launch this script with:  
   
   -s : searches using the string provided and returns a list of albums , if the string contains whitespace it should be quoted.
-  -d : download the provided album.
+  -d : download the provided album.  
 
 **There is no cap on threads for now, so it can be ressource hungry.*  *
 
