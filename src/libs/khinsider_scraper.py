@@ -19,7 +19,7 @@ class KhinsiderScraper():
     def search_albums(self, album):
         url = "{}/{}/{}".format(
             self.KHINSIDER_BASE_URL,
-            self.KHINSIDER_OST_SECTION, album
+            self.KHINSIDER_SEARCH_SECTION, album
         )
         r = requests.get(url)
         if "album" not in r.url:

@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import argparse
 from libs.khinsider_scraper import KhinsiderScraper
 
